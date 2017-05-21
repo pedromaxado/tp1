@@ -1,0 +1,180 @@
+/* ======================================================== *
+ *              Trabalho Prático 0 - AEDS III               *
+ *                                                          *
+ * @ Pedro Otávio Machado Ribeiro.                          *
+ *                                                          *
+ * graph.h - Define funções relacionadas a manipulação de   *
+ * um TAD grafo implementada com lista de adjacência e      *
+ * matriz para armazenar o valor das arestas.               *
+ * ======================================================== */
+
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#include "graph.h"
+
+#define INF INT_MAX
+
+/*
+ * Struct da TAD graph encapsulada.
+ *
+ * Membros:
+ *   edges - lista de adjacências para armazenar as arestas
+ *   vertexs - lista de nós para
+ *   flow  - matriz que contem a capacidade das arestas
+ *   size  - quantidade de vértices no grafo
+ */
+struct graph_t {
+
+    vector* edges;
+    vertex* vertexs;
+    int     size;
+};
+
+graph new_graph( int v ) {
+
+    int size = v + 2;
+
+    graph g = ( graph ) malloc( sizeof( struct graph_t ) );
+
+    g->size = size;
+
+    g->edges    = ( vector* ) malloc( size * sizeof( vector ) );
+    g->vertexs  = ( vertex* ) malloc( size * sizeof( vertex ) );
+
+    for ( int i = 0; i < size; i++ ) {
+        g->edges[i]   = new_vector(  );
+        g->vertexs[i] = new_vertex( i, -1, 0 );
+    }
+
+    return g;
+}
+
+void delete_graph( graph g ) {
+
+    for ( int i = 0; i < g->size; i++ ) {
+        delete_vector ( g->edges[i]   );
+        delete_vertex ( g->vertexs[i] );
+    }
+
+    free( g->edges );
+    free( g->vertexs );
+}
+
+void addEdge( graph g, int u, int v, int cost ) {
+
+    if ( u == v )
+        return;
+
+    add( g->edges[u], new_edge( v, cost, vectorSize( g->edges[v] ) ) );
+}
+
+bool bfs( graph g, int a, int b ) {
+
+    queue q = new_queue();
+
+    bool* mark = ( bool* ) malloc( g->size * sizeof( bool ) );
+    memset( mark, false, sizeof( bool ) * g->size );
+
+    push( q, g->vertexs[a] );
+
+    while ( !isQueueEmpty( q ) ) {
+
+        vertex v = front( q );
+        pop( q );
+
+        int vIndex = getIndex(v);
+        int vCost  = getCost (v);
+
+        if ( mark[vIndex] ) continue;
+
+        mark[vIndex]       = true;
+        g->vertexs[vIndex] = v;
+
+        if ( vIndex == b ) {
+            delete_queue( q );
+            return true;
+        }
+
+        for ( int i = 0; i < vectorSize( g->edges[vIndex] ); i++ ) {
+            int adj = getVertex( get( g->edges[vIndex], i ) );
+
+            if ( !mark[adj] && getCap( get( g->edges[vIndex], i ) ) > 0 ) {
+                vertex tmp = g->vertexs[adj];
+                setCost( tmp, vCost+1 );
+                setParent( tmp, vCost );
+                push( q, tmp );
+            }
+        }
+    }
+
+    delete_queue( q );
+
+    return false;
+}
+
+int pathMinCapacity( graph g, int sink ) {
+
+    int minCapacity = INF, parent;
+    vertex actual = g->vertexs[sink];
+
+    while ( ( parent = getParent( actual ) ) != -1 ) {
+
+        int actualPos = 0;
+
+        while ( getVertex( get(g->edges[parent], actualPos) ) != getIndex(actual) ) {
+            actualPos++;
+            printf("%d\n", getVertex( get(g->edges[parent], actualPos)) );
+        }
+
+        minCapacity  = ( minCapacity < getCap( get( g->edges[parent], actualPos ) ) ) ?
+                         minCapacity : getCap( get( g->edges[parent], actualPos ) );
+
+        actual = g->vertexs[ parent ];
+    }
+
+    return minCapacity;
+}
+
+void pathAugment( graph g, int sink, int minCapacity ) {
+
+    int parent;
+    vertex actual = g->vertexs[sink];
+
+    while ( ( parent = getParent(actual) ) != -1 ) {
+
+        int vIndex = getIndex( actual );
+        int vertexPos = 0;
+        int parentPos = 0;
+
+        while ( getVertex( get(g->edges[parent], vertexPos) ) != vIndex )
+            vertexPos++;
+
+        while ( getVertex( get(g->edges[vIndex], parentPos) ) != parent )
+            parentPos++;
+
+        setCap( get(g->edges[parent], vertexPos), getCap(get(g->edges[parent], vertexPos)) - minCapacity );
+        setCap( get(g->edges[vIndex], parentPos), getCap(get(g->edges[vIndex], parentPos)) + minCapacity );
+
+        actual = g->vertexs[parent];
+    }
+}
+
+int maxFlow( graph g, int source, int sink ) {
+
+    int result = 0,
+        tmp    = 0;
+
+    while ( true ) {
+
+        if ( !bfs(g, source, sink) )
+            break;
+
+        tmp = pathMinCapacity( g, sink );
+        result += tmp;
+        pathAugment( g, sink, tmp );
+    }
+
+    return result;
+}
