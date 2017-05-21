@@ -53,3 +53,5 @@ dkms.conf
 
 tests/big_tests/*
 tp1
+tests/*.txt
+tests/in*
