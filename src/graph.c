@@ -17,8 +17,7 @@ struct graph_t {
     vector* edges;
     queue q;
     int* level;
-    int flow,
-        size;
+    int size;
 };
 
 graph new_graph( int v ) {
@@ -146,10 +145,10 @@ int blockFlow( graph g, int u, int sink, int flow ) {
 
 int maxFlow( graph g, int src, int sink ) {
 
-    g->flow = 0;
+    int flow = 0;
 
     while ( hasLevelGraph( g, src, sink ) )
-        g->flow += blockFlow( g, src, sink, INF );
+        flow += blockFlow( g, src, sink, INF );
 
-    return g->flow;
+    return flow;
 }
