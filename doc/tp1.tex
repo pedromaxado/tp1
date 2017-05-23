@@ -166,6 +166,8 @@
 	
 	\section{Complexidade}
 	
+	\subsection{Temporal}
+	
 	Sabemos previamente que as buscas em Profundidade e Largura custam $O(E)$.
 	
 	Para um dado grafo $G((V,E), s, t)$, sabemos que para um menor caminho aumentante de $s$ até $t$ teremos no máximo $|V|-1$ arestas. Dado isso, podemos dizer que o algoritmo terminará em no máximo $|V|$ iterações. Dessa forma, precisamos apenas da complexidade do Bloqueio de Fluxo para determinar a complexidade do algoritmo de Dinic.
@@ -173,6 +175,10 @@
 	Note que para o custo do Bloqueio de Fluxo é $O(|V||E|)$, pois o tamanho do caminho da fonte até o sumidou não irá exceder $|V|$, e para cada caminho de tamanho $v <= |V|$, são feitas no máximo $E$ iterações, pois estamos passando por cada aresta novamente, até encontrar um novo caminho diferente do último que teve uma de suas arestas saturadas. Esta aresta saturada, no pior caso, será a última, por isso teremos no máximo $E$ iterações.
 	
 	Dessa forma, temos que a complexidade do algoritmo de Dinic será $O(|V|)*O(|V||E|) \implies O(|V|^2|E|)$.
+	
+	\subsection{Espacial}
+	
+	A estrutura do grafo deste trabalho foi implementada utilizando lista de adjacências para representar suas arestas. Dessa forma, a complexidade espacial baseia-se apenas na quantidade de arestas do grafo, gastando $O(|E|)$ de memória.
 	
 	\section{Experimentos}
 	
