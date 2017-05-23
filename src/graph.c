@@ -13,6 +13,14 @@
 
 #include "graph.h"
 
+/*
+ * Struct da TAD graph encapsulada.
+ *
+ * Membros:
+ *   edges - lista de adjacências para armazenar as arestas
+ *   q     - fila de vértices para definir os níveis
+ *   size  - quantidade de vértices no grafo
+ */
 struct graph_t {
     vector* edges;
     queue q;
@@ -70,6 +78,18 @@ void addEdge( graph g, int u, int v, int cap ) {
     add(g->edges[v], r);
 }
 
+/*
+ * Define o nível de cada vértice no grafo, e retorna verdadeiro
+ * caso ainda haja um caminho aumentante.
+ *
+ * Parâmetros:
+ *   * g    - grafo
+ *   * src  - fonte
+ *   * sink - sumidouro
+ *
+ * Retorna:
+ *   * bool - true se existe caminho, false caso contrário
+ */
 bool hasLevelGraph( graph g, int src, int sink ) {
 
     memset( g->level, -1, sizeof( int ) * g->size );
@@ -86,16 +106,22 @@ bool hasLevelGraph( graph g, int src, int sink ) {
         int u = front( g->q );
         pop( g->q );
 
+        /* visita todos os vértices adjacentes primeiramente */
         for ( int i = 0; i < vectorSize( g->edges[u] ); i++ ) {
 
             int vtx = getVertex( get( g->edges[u], i ) );
             int cap = getCap   ( get( g->edges[u], i ) );
 
+            /* se a aresta tiver custo zero ou o vértice tem seu nível definido,
+             * parta para a próxima aresta na fila */
             if ( cap == 0 || g->level[vtx] != -1 )
                 continue;
 
+            /* define o nível do vértice */
             g->level[vtx] = g->level[u] + 1;
 
+            /* se foi possível chegar no sink, temos um grafo de nível válido,
+             * e consequentemente um caminho aumentante */
             if ( vtx == sink )
                 return true;
 
@@ -106,6 +132,22 @@ bool hasLevelGraph( graph g, int src, int sink ) {
     return false;
 }
 
+/*
+ * Bloqueia o fluxo nas aresta em um grafo dado por meio de um
+ * DFS. O algoritmo encontra a aresta de menor custo ao longo do
+ * caminho e volta na recursão subtraindo o fluxo de cada aresta.
+ * Para cada fluxo encontrado, somamos em uma variável que repre-
+ * senta o fluxo máximo no grafo residual.
+ *
+ * Parâmetros:
+ *   * g - grafo
+ *   * u - vértice origem
+ *   * sink - sumidouro
+ *   * flow - fluxo
+ *
+ * Retorna:
+ *   * int - fluxo máximo obtido no grafo residual
+ */
 int blockFlow( graph g, int u, int sink, int flow ) {
 
     if ( u == sink || flow == 0 )

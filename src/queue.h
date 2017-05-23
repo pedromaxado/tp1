@@ -14,8 +14,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "vertex.h"
-
 typedef int Type;
 
 /* definição do tipo priority queue */
